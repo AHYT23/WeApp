@@ -4,150 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WeApp - Campus IIPEA</title>
+    <meta name="description" content="WeApp - Réseau social exclusif pour les étudiants de l'IIPEA">
 
-    <!-- SEO basique -->
-    <meta name="description" content="WeApp - Réseau social pour étudiants du campus IIPEA">
-
-    <!-- Police -->
+    <!-- Polices & Styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- 🔝 HEADER -->
+    <!-- 🔝 BARRE SUPÉRIEURE -->
     <header class="top-bar">
         <div class="logo-weapp">WeApp</div>
 
         <div class="search-box">
-            <input 
-                type="text" 
-                id="searchInp" 
-                placeholder="Rechercher un étudiant..." 
-                aria-label="Rechercher un étudiant">
+            <input type="text" id="searchInp" placeholder="Rechercher un étudiant...">
         </div>
 
         <div class="nav-icons-top">
-            <button class="btn-icon" title="Messages Privés" aria-label="Messages">
-                💬
-            </button>
+            <button class="btn-icon" title="Messages Privés">💬</button>
         </div>
     </header>
 
-    <!-- 📌 NAVIGATION PRINCIPALE -->
+    <!-- 📌 NAVIGATION (Cachée si non connecté) -->
     <nav class="main-nav hidden" id="nav-principale">
-        <button class="nav-item active" data-tab="accueil">
-            🏠 <span>Accueil</span>
-        </button>
-
-        <button class="nav-item" data-tab="amis">
-            👥 <span>Amis</span>
-        </button>
-
-        <button class="nav-item" data-tab="notifs">
-            🔔 <span>Notifications</span>
-        </button>
+        <div class="nav-item active" id="tab-accueil">🏠 <span>Accueil</span></div>
+        <div class="nav-item" id="tab-amis">👥 <span>Amis</span></div>
+        <div class="nav-item" id="tab-notifs">🔔 <span>Notifications</span></div>
     </nav>
 
-    <!-- 📦 CONTENU -->
     <main class="container">
 
-        <!-- 🔐 CONNEXION -->
+        <!-- 🔐 SECTION CONNEXION -->
         <section id="login-section" class="card">
             <div class="card-header">
                 <h1>Connexion</h1>
-                <p>Accède au réseau étudiant IIPEA</p>
+                <p>Heureux de vous revoir sur le réseau IIPEA</p>
             </div>
 
-            <form id="login-form">
+            <div class="form-container">
                 <div class="input-group">
                     <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" required>
+                    <input type="email" id="loginEmail" placeholder="votre-email@exemple.com">
                 </div>
 
                 <div class="input-group">
                     <label for="loginPass">Mot de passe</label>
-                    <input type="password" id="loginPass" required>
+                    <input type="password" id="loginPass" placeholder="••••••••">
                 </div>
 
-                <button type="submit" class="btn-main">
-                    Se connecter
-                </button>
-            </form>
-
-            <p class="switch-auth">
-                Pas de compte ?
-                <span id="go-register">S'inscrire</span>
-            </p>
-        </section>
-
-        <!-- 📝 INSCRIPTION -->
-        <section id="auth-section" class="card hidden">
-            <div class="card-header">
-                <h1>Créer un compte</h1>
-                <p>Rejoins la communauté WeApp</p>
+                <button id="btn-connexion" class="btn-main">Se connecter</button>
             </div>
 
-            <form id="register-form">
-                <div class="input-group">
-                    <input type="text" id="nom" placeholder="Nom complet" required>
-                    <input type="text" id="classe" placeholder="Classe (L2 SEG)">
-                    <input type="text" id="filiere" placeholder="Filière">
-                    <textarea id="bio" placeholder="Ta bio"></textarea>
-                    <input type="email" id="email" placeholder="Email" required>
-                    <input type="password" id="password" placeholder="Mot de passe" required>
-                </div>
-
-                <button type="submit" class="btn-main">
-                    Créer mon compte
-                </button>
-            </form>
-
             <p class="switch-auth">
-                Déjà inscrit ?
-                <span id="go-login">Se connecter</span>
+                Pas encore de compte ? <span id="go-register">Créer un compte</span>
             </p>
         </section>
 
-        <!-- 🏠 APP PRINCIPALE -->
-        <section id="main-content" class="hidden">
+        <!-- 📝 SECTION INSCRIPTION -->
+        <section id="auth-section" class="card hidden">
+            <div class="card-header">
+                <h1>Inscription</h1>
+                <p>Rejoignez la communauté étudiante</p>
+            </div>
 
-            <!-- 👤 Profil -->
+            <div class="form-container">
+                <div class="input-group">
+                    <input type="text" id="nom" placeholder="Nom complet (ex: Marc Williams)">
+                    <input type="text" id="classe" placeholder="Classe (ex: L3 SEG)">
+                    <input type="text" id="filiere" placeholder="Filière (ex: Administration des Affaires)">
+                    <textarea id="bio" placeholder="Parlez-nous de vous en quelques mots..."></textarea>
+                    <input type="email" id="email" placeholder="Email">
+                    <input type="password" id="password" placeholder="Créer un mot de passe">
+                </div>
+
+                <button id="btn-inscription" class="btn-main">S'inscrire</button>
+            </div>
+
+            <p class="switch-auth">
+                Déjà membre ? <span id="go-login">Se connecter</span>
+            </p>
+        </section>
+
+        <!-- 🏠 APPLICATION PRINCIPALE -->
+        <section id="main-content" class="hidden">
+            
+            <!-- Profil utilisateur (S'injecte via JS) -->
             <div id="user-header-profile"></div>
 
-            <!-- ✍️ Publication -->
+            <!-- Zone de Publication -->
             <section id="publication-area" class="card">
-                <textarea 
-                    id="postInput" 
-                    placeholder="Quoi de neuf sur le campus ?">
-                </textarea>
+                <textarea id="postInput" placeholder="Quoi de neuf sur le campus ?"></textarea>
 
                 <div class="post-actions">
                     <label for="fileInput" class="icon-upload">
-                        🖼️ Ajouter média
+                        🖼️ Photo / Vidéo
                     </label>
+                    <input type="file" id="fileInput" hidden accept="image/*,video/*">
 
-                    <input 
-                        type="file" 
-                        id="fileInput" 
-                        hidden 
-                        accept="image/*,video/*">
-
-                    <button class="btn-post" id="btnPost">
-                        Publier
-                    </button>
+                    <button class="btn-post" id="btnPost">Publier</button>
                 </div>
             </section>
 
-            <!-- 📰 Fil -->
-            <section id="newsfeed"></section>
+            <!-- Fil d'actualité -->
+            <div id="newsfeed"></div>
 
         </section>
 
     </main>
 
-    <!-- JS -->
+    <!-- Chargement du Script en mode Module -->
     <script type="module" src="script.js"></script>
 
 </body>
