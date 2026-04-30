@@ -1,195 +1,307 @@
-/* --- VARIABLES & RESET --- */
+/* =========================
+   🎨 VARIABLES (DESIGN SYSTEM)
+========================= */
 :root {
-    --primary-red: #FF0000;
-    --dark-red: #b30000;
-    --bg-gray: #f0f2f5;
+    --primary: #FF0000;
+    --primary-dark: #cc0000;
+    --bg: #f2f3f5;
     --white: #ffffff;
+
     --text-main: #1c1e21;
-    --border-color: #ddd;
+    --text-muted: #65676b;
+
+    --border: #e4e6eb;
+
+    --radius: 12px;
+    --radius-sm: 8px;
+
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+
+    --transition: all 0.2s ease;
 }
 
-* {
+/* =========================
+   🧱 RESET
+========================= */
+*,
+*::before,
+*::after {
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
-    padding-top: 60px; /* Espace pour la barre du haut */
-    background-color: var(--bg-gray);
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
     color: var(--text-main);
+    line-height: 1.5;
+    padding-top: 70px;
 }
 
-/* --- 1. BARRE DU HAUT (TOP BAR) --- */
+/* =========================
+   🔝 HEADER
+========================= */
 .top-bar {
     position: fixed;
     top: 0;
     width: 100%;
-    height: 60px;
+    height: 65px;
     background: var(--white);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0 15px;
-    border-bottom: 1px solid var(--border-color);
-    z-index: 2000;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: var(--shadow-sm);
+    z-index: 1000;
 }
 
 .logo-weapp {
-    font-family: 'Georgia', serif;
-    color: var(--primary-red);
-    font-weight: bold;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--primary);
 }
 
+/* 🔍 Search */
 .search-box input {
-    background: var(--bg-gray);
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    width: 180px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 30px;
+    width: 240px;
+    transition: var(--transition);
 }
 
-.btn-icon {
-    background: none;
-    border: none;
-    font-size: 1.4rem;
-    cursor: pointer;
+.search-box input:focus {
+    width: 300px;
+    border-color: var(--primary);
+    outline: none;
 }
 
-/* --- 2. BARRE DE NAVIGATION (NAV PRINCIPALE) --- */
+/* =========================
+   📌 NAVIGATION
+========================= */
 .main-nav {
     position: sticky;
-    top: 60px;
+    top: 65px;
     background: var(--white);
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 30px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--border-color);
-    z-index: 1000;
+    border-bottom: 1px solid var(--border);
+    z-index: 900;
 }
 
 .nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    color: #65676b;
-    transition: 0.3s;
+    color: var(--text-muted);
+    transition: var(--transition);
 }
 
-.nav-item .icon {
-    font-size: 1.4rem;
+.nav-item:hover {
+    background: var(--bg);
 }
 
-.nav-item .label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-top: 2px;
-}
-
-/* --- L'ÉTAT ACTIF (MAISON ROUGE) --- */
 .nav-item.active {
-    color: var(--primary-red);
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+    border-radius: 0;
 }
 
-.nav-item.active .icon {
-    transform: scale(1.1);
+.nav-item span {
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
-/* --- 3. CONTENEUR ET CARTES --- */
+/* =========================
+   📦 CONTAINER
+========================= */
 .container {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 0 10px;
+    max-width: 680px;
+    margin: 25px auto;
+    padding: 0 15px;
 }
 
+/* =========================
+   🧾 CARD
+========================= */
 .card {
     background: var(--white);
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
 }
 
-/* --- 4. ZONE DE PUBLICATION --- */
+/* =========================
+   ✍️ PUBLICATION
+========================= */
 #publication-area textarea {
     width: 100%;
     border: none;
-    font-size: 1.1rem;
-    outline: none;
     resize: none;
-    min-height: 60px;
+    font-size: 1.1rem;
+    min-height: 80px;
+    outline: none;
 }
 
 .post-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
+    margin-top: 15px;
     padding-top: 10px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--border);
 }
 
 .icon-upload {
-    cursor: pointer;
-    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
     font-weight: 600;
-    color: #444;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.icon-upload:hover {
+    background: var(--bg);
 }
 
 .btn-post {
-    background: var(--primary-red);
+    background: var(--primary);
     color: white;
     border: none;
-    padding: 8px 25px;
-    border-radius: 20px;
-    font-weight: bold;
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-weight: 700;
     cursor: pointer;
+    transition: var(--transition);
 }
 
-/* --- 5. FIL D'ACTUALITÉ (POSTS) --- */
+.btn-post:hover {
+    background: var(--primary-dark);
+}
+
+.btn-post:active {
+    transform: scale(0.95);
+}
+
+/* =========================
+   📰 POSTS
+========================= */
 .post-card {
-    border: 1px solid #ddd;
+    animation: fadeIn 0.3s ease;
 }
 
-.post-card img, .post-card video {
-    max-width: 100%;
-    border-radius: 8px;
-    margin-top: 10px;
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
-/* --- 6. AUTHENTIFICATION --- */
-.input-group {
-    margin-bottom: 12px;
+.post-header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
-.input-group input {
+.post-card p {
+    margin: 10px 0;
+}
+
+.post-card img,
+.post-card video {
     width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
+    margin-top: 10px;
+    max-height: 450px;
+    object-fit: cover;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   🔐 AUTH
+========================= */
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    display: block;
+}
+
+.input-group input,
+.input-group textarea {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fafafa;
 }
 
 .btn-main {
     width: 100%;
-    background: var(--primary-red);
+    background: var(--primary);
     color: white;
-    border: none;
     padding: 14px;
-    border-radius: 8px;
-    font-weight: bold;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
     cursor: pointer;
+    transition: var(--transition);
 }
 
-.switch-auth {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 0.9rem;
+.btn-main:hover {
+    background: var(--primary-dark);
 }
 
-.switch-auth span {
-    color: blue;
-    cursor: pointer;
-    text-decoration: underline;
+/* =========================
+   📱 RESPONSIVE
+========================= */
+@media (max-width: 600px) {
+
+    .search-box {
+        display: none;
+    }
+
+    .main-nav {
+        gap: 20px;
+    }
+
+    .logo-weapp {
+        font-size: 1.4rem;
+    }
+
+    .container {
+        margin-top: 10px;
+    }
 }
