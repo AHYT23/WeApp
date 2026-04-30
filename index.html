@@ -3,96 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>weApp - Campus IIPEA</title>
+    <title>WeApp - Campus IIPEA</title>
+
+    <!-- SEO basique -->
+    <meta name="description" content="WeApp - Réseau social pour étudiants du campus IIPEA">
+
+    <!-- Police -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- 1. HAUT DE PAGE (TOP BAR) -->
-    <nav class="top-bar">
-        <div class="logo-weapp">weApp</div>
+    <!-- 🔝 HEADER -->
+    <header class="top-bar">
+        <div class="logo-weapp">WeApp</div>
+
         <div class="search-box">
-            <input type="text" id="searchInp" placeholder="Rechercher un étudiant...">
+            <input 
+                type="text" 
+                id="searchInp" 
+                placeholder="Rechercher un étudiant..." 
+                aria-label="Rechercher un étudiant">
         </div>
+
         <div class="nav-icons-top">
-            <button class="btn-icon" title="Messages Privés">💬</button>
+            <button class="btn-icon" title="Messages Privés" aria-label="Messages">
+                💬
+            </button>
         </div>
+    </header>
+
+    <!-- 📌 NAVIGATION PRINCIPALE -->
+    <nav class="main-nav hidden" id="nav-principale">
+        <button class="nav-item active" data-tab="accueil">
+            🏠 <span>Accueil</span>
+        </button>
+
+        <button class="nav-item" data-tab="amis">
+            👥 <span>Amis</span>
+        </button>
+
+        <button class="nav-item" data-tab="notifs">
+            🔔 <span>Notifications</span>
+        </button>
     </nav>
 
-    <!-- 2. BARRE DE NAVIGATION (ICONES) -->
-    <nav class="main-nav" id="nav-principale" style="display:none;">
-        <div class="nav-item active" onclick="changerOnglet('accueil')">
-            <span class="icon">🏠</span>
-            <span class="label">Accueil</span>
-        </div>
-        <div class="nav-item" onclick="changerOnglet('amis')">
-            <span class="icon">👥</span>
-            <span class="label">Amis</span>
-        </div>
-        <div class="nav-item" onclick="changerOnglet('notifs')">
-            <span class="icon">🔔</span>
-            <span class="label">Notifications</span>
-        </div>
-    </nav>
-
+    <!-- 📦 CONTENU -->
     <main class="container">
 
-        <!-- ÉCRAN DE CONNEXION (S'affiche en premier) -->
+        <!-- 🔐 CONNEXION -->
         <section id="login-section" class="card">
             <div class="card-header">
-                <h2>Connexion</h2>
-                <p>Accédez au réseau de l'IIPEA</p>
+                <h1>Connexion</h1>
+                <p>Accède au réseau étudiant IIPEA</p>
             </div>
-            <div class="input-group">
-                <input type="email" id="loginEmail" placeholder="Email (ex: henoc201@outlook.fr)">
-            </div>
-            <div class="input-group">
-                <input type="password" id="loginPass" placeholder="Mot de passe">
-            </div>
-            <button class="btn-main" onclick="connexionEtudiant()">Se connecter</button>
-            <p class="switch-auth">Pas de compte ? <span onclick="basculerVue('inscription')">S'inscrire</span></p>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="loginPass">Mot de passe</label>
+                    <input type="password" id="loginPass" required>
+                </div>
+
+                <button type="submit" class="btn-main">
+                    Se connecter
+                </button>
+            </form>
+
+            <p class="switch-auth">
+                Pas de compte ?
+                <span id="go-register">S'inscrire</span>
+            </p>
         </section>
 
-        <!-- ÉCRAN D'INSCRIPTION (Caché par défaut) -->
-        <section id="auth-section" class="card" style="display:none;">
-            <h2>Rejoindre weApp</h2>
-            <input type="text" id="nom" placeholder="Nom Complet">
-            <input type="text" id="classe" placeholder="Classe (ex: L2 SEG)">
-            <input type="text" id="filiere" placeholder="Filière (ex: Économie)">
-            <textarea id="bio" placeholder="Ta bio..."></textarea>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Mot de passe">
-            <button class="btn-main" onclick="inscriptionEtudiant()">Créer mon compte</button>
-            <p class="switch-auth">Déjà inscrit ? <span onclick="basculerVue('connexion')">Se connecter</span></p>
+        <!-- 📝 INSCRIPTION -->
+        <section id="auth-section" class="card hidden">
+            <div class="card-header">
+                <h1>Créer un compte</h1>
+                <p>Rejoins la communauté WeApp</p>
+            </div>
+
+            <form id="register-form">
+                <div class="input-group">
+                    <input type="text" id="nom" placeholder="Nom complet" required>
+                    <input type="text" id="classe" placeholder="Classe (L2 SEG)">
+                    <input type="text" id="filiere" placeholder="Filière">
+                    <textarea id="bio" placeholder="Ta bio"></textarea>
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="password" id="password" placeholder="Mot de passe" required>
+                </div>
+
+                <button type="submit" class="btn-main">
+                    Créer mon compte
+                </button>
+            </form>
+
+            <p class="switch-auth">
+                Déjà inscrit ?
+                <span id="go-login">Se connecter</span>
+            </p>
         </section>
 
-        <!-- ZONE DE PUBLICATION (Visible une fois connecté) -->
-        <div id="main-content" style="display:none;">
-            
-            <!-- PROFIL RAPIDE (Fix pour la photo qui ne passe pas) -->
+        <!-- 🏠 APP PRINCIPALE -->
+        <section id="main-content" class="hidden">
+
+            <!-- 👤 Profil -->
             <div id="user-header-profile"></div>
 
+            <!-- ✍️ Publication -->
             <section id="publication-area" class="card">
-                <div class="post-input-container">
-                    <textarea id="postInput" placeholder="Quoi de neuf sur le campus ?"></textarea>
-                </div>
+                <textarea 
+                    id="postInput" 
+                    placeholder="Quoi de neuf sur le campus ?">
+                </textarea>
+
                 <div class="post-actions">
-                    <!-- Remplacement de la partie story par l'icône image -->
                     <label for="fileInput" class="icon-upload">
-                        <span class="icon-pic">🖼️</span> Ajouter une Photo/Vidéo
+                        🖼️ Ajouter média
                     </label>
-                    <input type="file" id="fileInput" style="display:none" accept="image/*,video/*">
-                    <button class="btn-post" onclick="publierPost()">Publier</button>
+
+                    <input 
+                        type="file" 
+                        id="fileInput" 
+                        hidden 
+                        accept="image/*,video/*">
+
+                    <button class="btn-post" id="btnPost">
+                        Publier
+                    </button>
                 </div>
             </section>
 
-            <!-- FIL D'ACTUALITÉ -->
-            <div id="newsfeed"></div>
-        </div>
+            <!-- 📰 Fil -->
+            <section id="newsfeed"></section>
+
+        </section>
 
     </main>
 
+    <!-- JS -->
     <script type="module" src="script.js"></script>
+
 </body>
 </html>
