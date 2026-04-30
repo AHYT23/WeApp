@@ -16,15 +16,16 @@
     </nav>
 
     <div id="app">
-        <!-- FORMULAIRE D'INSCRIPTION COMPLET -->
+        
+        <!-- 1. FORMULAIRE D'INSCRIPTION -->
         <section id="auth-section" class="card">
             <h2>Créer mon compte étudiant</h2>
             
             <div class="input-group">
                 <h3>Informations Publiques</h3>
                 <input type="text" id="nom" placeholder="Nom et Prénom">
-                <input type="text" id="classe" placeholder="Ta classe (ex: L3 SEG, Master 1...)">
-                <input type="text" id="filiere" placeholder="Ta filière (ex: Économie, Droit...)">
+                <input type="text" id="classe" placeholder="Ta classe (ex: L3 SEG...)">
+                <input type="text" id="filiere" placeholder="Ta filière (ex: Économie...)">
                 <textarea id="bio" placeholder="Parle-nous de toi (Bio)..."></textarea>
             </div>
 
@@ -37,12 +38,24 @@
             </div>
 
             <button class="btn-main" onclick="inscriptionEtudiant()">S'inscrire sur weApp</button>
+            <p onclick="basculerVue('connexion')" style="cursor:pointer; color:blue; text-align:center; margin-top:15px;">Déjà inscrit ? Se connecter</p>
         </section>
 
-        <!-- ZONE DES RÉSULTATS / PROFILS -->
+        <!-- 2. FORMULAIRE DE CONNEXION (Masqué par défaut) -->
+        <section id="login-section" class="card" style="display:none;">
+            <h2>Connexion à weApp</h2>
+            <div class="input-group">
+                <input type="email" id="loginEmail" placeholder="Ton adresse e-mail">
+                <input type="password" id="loginPass" placeholder="Ton mot de passe">
+            </div>
+            <button class="btn-main" onclick="connexionEtudiant()">Se connecter</button>
+            <p onclick="basculerVue('inscription')" style="cursor:pointer; color:blue; text-align:center; margin-top:15px;">Pas encore de compte ? S'inscrire</p>
+        </section>
+
+        <!-- 3. ZONE DES RÉSULTATS / PROFILS -->
         <section id="results"></section>
 
-        <!-- ZONE DE MESSAGERIE (S'affichera lors d'une discussion) -->
+        <!-- 4. ZONE DE MESSAGERIE -->
         <section id="chat-box" style="display:none;" class="card">
             <div id="chat-header">
                 <span id="chat-with-name">Discussion</span>
@@ -56,6 +69,7 @@
                 <button onclick="envoyerMessage()">Envoyer</button>
             </div>
         </section>
+
     </div>
 
     <!-- Chargement de Firebase et de ta logique -->
