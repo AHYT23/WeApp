@@ -1,183 +1,195 @@
-/* --- VARIABLES ET BASE --- */
+/* --- VARIABLES & RESET --- */
 :root {
     --primary-red: #FF0000;
     --dark-red: #b30000;
-    --light-gray: #f0f2f5;
+    --bg-gray: #f0f2f5;
     --white: #ffffff;
-    --text-dark: #1c1e21;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --text-main: #1c1e21;
+    --border-color: #ddd;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
 body {
     margin: 0;
-    padding: 0;
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--light-gray);
-    color: var(--text-dark);
+    padding-top: 60px; /* Espace pour la barre du haut */
+    background-color: var(--bg-gray);
+    color: var(--text-main);
 }
 
-/* --- NAVIGATION --- */
-.navbar {
-    background: var(--white);
-    padding: 10px 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    position: sticky;
+/* --- 1. BARRE DU HAUT (TOP BAR) --- */
+.top-bar {
+    position: fixed;
     top: 0;
-    z-index: 1000;
-}
-
-.nav-content {
-    max-width: 1000px;
-    margin: 0 auto;
+    width: 100%;
+    height: 60px;
+    background: var(--white);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 0 15px;
+    border-bottom: 1px solid var(--border-color);
+    z-index: 2000;
 }
 
 .logo-weapp {
     font-family: 'Georgia', serif;
     color: var(--primary-red);
-    margin: 0;
-    font-size: 1.8rem;
     font-weight: bold;
+    font-size: 1.6rem;
 }
 
-/* --- CARTES ET STRUCTURE --- */
+.search-box input {
+    background: var(--bg-gray);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    width: 180px;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+/* --- 2. BARRE DE NAVIGATION (NAV PRINCIPALE) --- */
+.main-nav {
+    position: sticky;
+    top: 60px;
+    background: var(--white);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1000;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    color: #65676b;
+    transition: 0.3s;
+}
+
+.nav-item .icon {
+    font-size: 1.4rem;
+}
+
+.nav-item .label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* --- L'ÉTAT ACTIF (MAISON ROUGE) --- */
+.nav-item.active {
+    color: var(--primary-red);
+}
+
+.nav-item.active .icon {
+    transform: scale(1.1);
+}
+
+/* --- 3. CONTENEUR ET CARTES --- */
 .container {
-    max-width: 700px;
+    max-width: 600px;
     margin: 20px auto;
-    padding: 0 15px;
+    padding: 0 10px;
 }
 
 .card {
     background: var(--white);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
-}
-
-.card-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-/* --- FORMULAIRES --- */
-.input-group {
+    border-radius: 10px;
+    padding: 15px;
     margin-bottom: 15px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-.input-group label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 5px;
+/* --- 4. ZONE DE PUBLICATION --- */
+#publication-area textarea {
+    width: 100%;
+    border: none;
+    font-size: 1.1rem;
+    outline: none;
+    resize: none;
+    min-height: 60px;
+}
+
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.icon-upload {
+    cursor: pointer;
     font-size: 0.9rem;
+    font-weight: 600;
+    color: #444;
 }
 
-input, textarea {
+.btn-post {
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    padding: 8px 25px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* --- 5. FIL D'ACTUALITÉ (POSTS) --- */
+.post-card {
+    border: 1px solid #ddd;
+}
+
+.post-card img, .post-card video {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* --- 6. AUTHENTIFICATION --- */
+.input-group {
+    margin-bottom: 12px;
+}
+
+.input-group input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 1rem;
 }
 
-textarea {
-    height: 100px;
-    resize: none;
-}
-
-/* --- BOUTONS --- */
 .btn-main {
     width: 100%;
-    background-color: var(--primary-red);
+    background: var(--primary-red);
     color: white;
     border: none;
     padding: 14px;
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s;
 }
 
-.btn-main:hover {
-    background-color: var(--dark-red);
-}
-
-.btn-secondary {
-    background: #eee;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* --- PROFIL UTILISATEUR --- */
-.profile-main-card {
+.switch-auth {
     text-align: center;
-    padding: 0 !important;
-    overflow: hidden;
+    margin-top: 15px;
+    font-size: 0.9rem;
 }
 
-.profile-banner {
-    height: 100px;
-    background: linear-gradient(135deg, var(--primary-red), #660000);
-}
-
-.profile-pic-main {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    border: 4px solid var(--white);
-    margin-top: -55px;
-    background: var(--white);
-    object-fit: cover;
-}
-
-/* --- STORIES / FEED --- */
-.story-card {
-    transition: transform 0.2s;
-}
-
-.story-card:hover {
-    transform: translateY(-2px);
-}
-
-.story-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-.story-author {
-    font-weight: 700;
-    color: var(--primary-red);
-}
-
-.story-date {
-    color: #888;
-    font-size: 0.8rem;
-}
-
-/* --- CHAT POPUP --- */
-.chat-popup {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 300px;
-    background: white;
-    border-radius: 12px 12px 0 0;
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
-    z-index: 2000;
-}
-
-.chat-header {
-    background: var(--primary-red);
-    color: white;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    border-radius: 12px 12px 0 0;
+.switch-auth span {
+    color: blue;
+    cursor: pointer;
+    text-decoration: underline;
 }
