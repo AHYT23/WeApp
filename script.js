@@ -1,98 +1,265 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>weApp - Campus IIPEA</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
+// ===============================
+// 🔥 CONFIG FIREBASE
+// ===============================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    <!-- 1. HAUT DE PAGE (TOP BAR) -->
-    <nav class="top-bar">
-        <div class="logo-weapp">weApp</div>
-        <div class="search-box">
-            <input type="text" id="searchInp" placeholder="Rechercher un étudiant...">
-        </div>
-        <div class="nav-icons-top">
-            <button class="btn-icon" title="Messages Privés">💬</button>
-        </div>
-    </nav>
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc,
+    collection,
+    addDoc,
+    query,
+    orderBy,
+    onSnapshot,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <!-- 2. BARRE DE NAVIGATION (ICONES) -->
-    <nav class="main-nav" id="nav-principale" style="display:none;">
-        <div class="nav-item active" onclick="changerOnglet('accueil')">
-            <span class="icon">🏠</span>
-            <span class="label">Accueil</span>
-        </div>
-        <div class="nav-item" onclick="changerOnglet('amis')">
-            <span class="icon">👥</span>
-            <span class="label">Amis</span>
-        </div>
-        <div class="nav-item" onclick="changerOnglet('notifs')">
-            <span class="icon">🔔</span>
-            <span class="label">Notifications</span>
-        </div>
-    </nav>
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-    <main class="container">
+const firebaseConfig = {
+    apiKey: "AIzaSy...",
+    authDomain: "weapp-af9e9.firebaseapp.com",
+    projectId: "weapp-af9e9",
+    storageBucket: "weapp-af9e9.appspot.com",
+    messagingSenderId: "985218671037",
+    appId: "1:985218671037:web:..."
+};
 
-        <!-- ÉCRAN DE CONNEXION (S'affiche en premier) -->
-        <section id="login-section" class="card">
-            <div class="card-header">
-                <h2>Connexion</h2>
-                <p>Accédez au réseau de l'IIPEA</p>
-            </div>
-            <div class="input-group">
-                <input type="email" id="loginEmail" placeholder="Email (ex: henoc201@outlook.fr)">
-            </div>
-            <div class="input-group">
-                <input type="password" id="loginPass" placeholder="Mot de passe">
-            </div>
-            <button class="btn-main" onclick="connexionEtudiant()">Se connecter</button>
-            <p class="switch-auth">Pas de compte ? <span onclick="basculerVue('inscription')">S'inscrire</span></p>
-        </section>
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-        <!-- ÉCRAN D'INSCRIPTION (Caché par défaut) -->
-        <section id="auth-section" class="card" style="display:none;">
-            <h2>Rejoindre weApp</h2>
-            <input type="text" id="nom" placeholder="Nom Complet">
-            <input type="text" id="classe" placeholder="Classe (ex: L2 SEG)">
-            <input type="text" id="filiere" placeholder="Filière (ex: Économie)">
-            <textarea id="bio" placeholder="Ta bio..."></textarea>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Mot de passe">
-            <button class="btn-main" onclick="inscriptionEtudiant()">Créer mon compte</button>
-            <p class="switch-auth">Déjà inscrit ? <span onclick="basculerVue('connexion')">Se connecter</span></p>
-        </section>
+const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
-        <!-- ZONE DE PUBLICATION (Visible une fois connecté) -->
-        <div id="main-content" style="display:none;">
-            
-            <!-- PROFIL RAPIDE (Fix pour la photo qui ne passe pas) -->
-            <div id="user-header-profile"></div>
+// ===============================
+// 🧠 UTILITAIRES
+// ===============================
+const $ = (id) => document.getElementById(id);
 
-            <section id="publication-area" class="card">
-                <div class="post-input-container">
-                    <textarea id="postInput" placeholder="Quoi de neuf sur le campus ?"></textarea>
+const toggle = (el, show) => {
+    if (!el) return;
+    el.style.display = show ? "block" : "none";
+};
+
+const showAlert = (msg) => alert(msg);
+
+// ===============================
+// 🔐 AUTH STATE
+// ===============================
+onAuthStateChanged(auth, async (user) => {
+    toggle($('login-section'), !user);
+    toggle($('auth-section'), false);
+    toggle($('nav-principale'), !!user);
+    toggle($('main-content'), !!user);
+
+    if (user) {
+        await loadUserProfile(user.uid);
+        loadFeed();
+    }
+});
+
+// ===============================
+// 🔑 AUTHENTIFICATION
+// ===============================
+async function login(email, password) {
+    if (!email || !password) {
+        return showAlert("Remplis tous les champs.");
+    }
+
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+        console.error(err);
+        showAlert("Connexion échouée.");
+    }
+}
+
+async function register(data) {
+    const { email, password, nom, classe, filiere, bio } = data;
+
+    if (!email || !password || !nom) {
+        return showAlert("Champs obligatoires manquants.");
+    }
+
+    try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+        await setDoc(doc(db, "etudiants", cred.user.uid), {
+            uid: cred.user.uid,
+            nom_complet: nom,
+            classe,
+            filiere,
+            bio,
+            email,
+            photo_url: "",
+            createdAt: serverTimestamp()
+        });
+
+        showAlert("Compte créé !");
+    } catch (err) {
+        console.error(err);
+        showAlert("Erreur inscription.");
+    }
+}
+
+// ===============================
+// 👤 PROFIL
+// ===============================
+async function loadUserProfile(uid) {
+    try {
+        const snap = await getDoc(doc(db, "etudiants", uid));
+        if (!snap.exists()) return;
+
+        const user = snap.data();
+        const container = $('user-header-profile');
+
+        container.innerHTML = `
+            <div class="user-bar">
+                <img src="${user.photo_url || DEFAULT_AVATAR}" 
+                     onerror="this.src='${DEFAULT_AVATAR}'" />
+
+                <div>
+                    <strong>${user.nom_complet}</strong>
+                    <small>${user.classe || ""} - ${user.filiere || ""}</small>
                 </div>
-                <div class="post-actions">
-                    <!-- Remplacement de la partie story par l'icône image -->
-                    <label for="fileInput" class="icon-upload">
-                        <span class="icon-pic">🖼️</span> Ajouter une Photo/Vidéo
-                    </label>
-                    <input type="file" id="fileInput" style="display:none" accept="image/*,video/*">
-                    <button class="btn-post" onclick="publierPost()">Publier</button>
+            </div>
+        `;
+    } catch (err) {
+        console.error("Profil error:", err);
+    }
+}
+
+// ===============================
+// 📝 PUBLICATION
+// ===============================
+async function createPost() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const text = $('postInput').value.trim();
+    const file = $('fileInput').files[0];
+
+    if (!text && !file) return;
+
+    try {
+        let mediaUrl = "";
+        let type = "texte";
+
+        if (file) {
+            const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}`);
+            const snap = await uploadBytes(storageRef, file);
+            mediaUrl = await getDownloadURL(snap.ref);
+            type = file.type.startsWith("image") ? "image" : "video";
+        }
+
+        const userSnap = await getDoc(doc(db, "etudiants", user.uid));
+        const userData = userSnap.data();
+
+        await addDoc(collection(db, "posts"), {
+            auteur: userData.nom_complet,
+            photo_auteur: userData.photo_url || DEFAULT_AVATAR,
+            contenu: text,
+            media: mediaUrl,
+            type,
+            uid: user.uid,
+            createdAt: serverTimestamp()
+        });
+
+        $('postInput').value = "";
+        $('fileInput').value = "";
+
+    } catch (err) {
+        console.error("Post error:", err);
+        showAlert("Erreur publication.");
+    }
+}
+
+// ===============================
+// 📰 FIL D’ACTUALITÉ
+// ===============================
+function loadFeed() {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+
+    onSnapshot(q, (snap) => {
+        const container = $('newsfeed');
+        container.innerHTML = "";
+
+        snap.forEach(docSnap => {
+            const p = docSnap.data();
+
+            const media = p.media
+                ? (p.type === "image"
+                    ? `<img src="${p.media}" />`
+                    : `<video src="${p.media}" controls></video>`)
+                : "";
+
+            const date = p.createdAt?.toDate()?.toLocaleString() || "";
+
+            container.innerHTML += `
+                <div class="post-card">
+                    <div class="post-header">
+                        <img src="${p.photo_auteur}" 
+                             onerror="this.src='${DEFAULT_AVATAR}'"/>
+                        <div>
+                            <strong>${p.auteur}</strong>
+                            <small>${date}</small>
+                        </div>
+                    </div>
+
+                    <p>${p.contenu}</p>
+                    ${media}
                 </div>
-            </section>
+            `;
+        });
+    });
+}
 
-            <!-- FIL D'ACTUALITÉ -->
-            <div id="newsfeed"></div>
-        </div>
+// ===============================
+// 🎯 EVENTS (PROPRE)
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
 
-    </main>
+    $('login-form')?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        login($('loginEmail').value, $('loginPass').value);
+    });
 
-    <script type="module" src="script.js"></script>
-</body>
-</html>
+    $('register-form')?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        register({
+            nom: $('nom').value,
+            classe: $('classe').value,
+            filiere: $('filiere').value,
+            bio: $('bio').value,
+            email: $('email').value,
+            password: $('password').value
+        });
+    });
+
+    $('btnPost')?.addEventListener("click", createPost);
+
+    $('go-register')?.addEventListener("click", () => {
+        toggle($('login-section'), false);
+        toggle($('auth-section'), true);
+    });
+
+    $('go-login')?.addEventListener("click", () => {
+        toggle($('login-section'), true);
+        toggle($('auth-section'), false);
+    });
+
+});
