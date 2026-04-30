@@ -1,307 +1,261 @@
-/* =========================
-   🎨 VARIABLES (DESIGN SYSTEM)
-========================= */
-:root {
-    --primary: #FF0000;
-    --primary-dark: #cc0000;
-    --bg: #f2f3f5;
-    --white: #ffffff;
+// ==========================================
+// 🔥 INITIALISATION FIREBASE & SERVICES
+// ==========================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-    --text-main: #1c1e21;
-    --text-muted: #65676b;
+const firebaseConfig = {
+    apiKey: "AIzaSyAt9aLIwKkxm1SeXlwXJ5tBXlvjMuIAR2M",
+    authDomain: "weapp-af9e9.firebaseapp.com",
+    projectId: "weapp-af9e9",
+    storageBucket: "weapp-af9e9.firebasestorage.app",
+    messagingSenderId: "985218671037",
+    appId: "1:985218671037:web:12d49094139dca0dc272d4"
+};
 
-    --border: #e4e6eb;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-    --radius: 12px;
-    --radius-sm: 8px;
+const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+let unsubscribeFeed = null;
 
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+// ==========================================
+// 🧠 UTILS & HELPERS
+// ==========================================
+const $ = (id) => document.getElementById(id);
 
-    --transition: all 0.2s ease;
-}
+const toggleSection = (id, show) => {
+    const el = $(id);
+    if (el) el.classList.toggle('hidden', !show);
+};
 
-/* =========================
-   🧱 RESET
-========================= */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+const sanitize = (text) => {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+};
 
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text-main);
-    line-height: 1.5;
-    padding-top: 70px;
-}
+// ==========================================
+// 🔐 GESTION DE L'AUTHENTIFICATION
+// ==========================================
+onAuthStateChanged(auth, async (user) => {
+    // Gestion visuelle des sections
+    toggleSection('login-section', !user);
+    toggleSection('auth-section', false);
+    toggleSection('nav-principale', !!user);
+    toggleSection('main-content', !!user);
 
-/* =========================
-   🔝 HEADER
-========================= */
-.top-bar {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    height: 65px;
-    background: var(--white);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: var(--shadow-sm);
-    z-index: 1000;
-}
+    if (unsubscribeFeed) unsubscribeFeed();
 
-.logo-weapp {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--primary);
-}
-
-/* 🔍 Search */
-.search-box input {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    padding: 10px 16px;
-    border-radius: 30px;
-    width: 240px;
-    transition: var(--transition);
-}
-
-.search-box input:focus {
-    width: 300px;
-    border-color: var(--primary);
-    outline: none;
-}
-
-/* =========================
-   📌 NAVIGATION
-========================= */
-.main-nav {
-    position: sticky;
-    top: 65px;
-    background: var(--white);
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    z-index: 900;
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    color: var(--text-muted);
-    transition: var(--transition);
-}
-
-.nav-item:hover {
-    background: var(--bg);
-}
-
-.nav-item.active {
-    color: var(--primary);
-    border-bottom: 3px solid var(--primary);
-    border-radius: 0;
-}
-
-.nav-item span {
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-/* =========================
-   📦 CONTAINER
-========================= */
-.container {
-    max-width: 680px;
-    margin: 25px auto;
-    padding: 0 15px;
-}
-
-/* =========================
-   🧾 CARD
-========================= */
-.card {
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0,0,0,0.04);
-}
-
-/* =========================
-   ✍️ PUBLICATION
-========================= */
-#publication-area textarea {
-    width: 100%;
-    border: none;
-    resize: none;
-    font-size: 1.1rem;
-    min-height: 80px;
-    outline: none;
-}
-
-.post-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-}
-
-.icon-upload {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.icon-upload:hover {
-    background: var(--bg);
-}
-
-.btn-post {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 30px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.btn-post:hover {
-    background: var(--primary-dark);
-}
-
-.btn-post:active {
-    transform: scale(0.95);
-}
-
-/* =========================
-   📰 POSTS
-========================= */
-.post-card {
-    animation: fadeIn 0.3s ease;
-}
-
-.post-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.post-header img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.post-card p {
-    margin: 10px 0;
-}
-
-.post-card img,
-.post-card video {
-    width: 100%;
-    border-radius: 10px;
-    margin-top: 10px;
-    max-height: 450px;
-    object-fit: cover;
-}
-
-/* Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
+    if (user) {
+        console.log("✅ Utilisateur connecté:", user.email);
+        await loadUserProfile(user.uid);
+        loadFeed();
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+});
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const btn = e.submitter;
+    const email = $('loginEmail').value.trim();
+    const pass = $('loginPass').value;
+
+    try {
+        btn.disabled = true;
+        btn.innerText = "Connexion...";
+        await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err) {
+        alert("Erreur : Email ou mot de passe incorrect.");
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Se connecter";
     }
 }
 
-/* =========================
-   🔐 AUTH
-========================= */
-.input-group {
-    margin-bottom: 15px;
-}
+async function handleRegister(e) {
+    e.preventDefault();
+    const btn = e.submitter;
+    const data = {
+        nom: $('nom').value.trim(),
+        classe: $('classe').value.trim(),
+        filiere: $('filiere').value.trim(),
+        bio: $('bio').value.trim(),
+        email: $('email').value.trim(),
+        password: $('password').value
+    };
 
-.input-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: 5px;
-    display: block;
-}
+    if (data.password.length < 6) return alert("Le mot de passe doit faire 6 caractères min.");
 
-.input-group input,
-.input-group textarea {
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #fafafa;
-}
-
-.btn-main {
-    width: 100%;
-    background: var(--primary);
-    color: white;
-    padding: 14px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.btn-main:hover {
-    background: var(--primary-dark);
-}
-
-/* =========================
-   📱 RESPONSIVE
-========================= */
-@media (max-width: 600px) {
-
-    .search-box {
-        display: none;
-    }
-
-    .main-nav {
-        gap: 20px;
-    }
-
-    .logo-weapp {
-        font-size: 1.4rem;
-    }
-
-    .container {
-        margin-top: 10px;
+    try {
+        btn.disabled = true;
+        btn.innerText = "Création...";
+        const cred = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        
+        await setDoc(doc(db, "etudiants", cred.user.uid), {
+            uid: cred.user.uid,
+            nom_complet: data.nom,
+            classe: data.classe,
+            filiere: data.filiere,
+            bio: data.bio,
+            photo_url: "",
+            createdAt: serverTimestamp()
+        });
+    } catch (err) {
+        alert("Erreur lors de l'inscription. Vérifiez les informations.");
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Créer mon compte";
     }
 }
+
+// ==========================================
+// 👤 PROFIL & UI
+// ==========================================
+async function loadUserProfile(uid) {
+    try {
+        const snap = await getDoc(doc(db, "etudiants", uid));
+        if (!snap.exists()) return;
+
+        const user = snap.data();
+        const header = $('user-header-profile');
+        
+        header.innerHTML = `
+            <div class="user-bar card">
+                <div class="user-info-flex">
+                    <img src="${user.photo_url || DEFAULT_AVATAR}" class="avatar-md" onerror="this.src='${DEFAULT_AVATAR}'"/>
+                    <div>
+                        <h3 class="m-0">${sanitize(user.nom_complet)}</h3>
+                        <span class="badge">${sanitize(user.classe || "Étudiant")}</span>
+                    </div>
+                </div>
+                <button id="btn-logout" class="btn-outline">Quitter</button>
+            </div>
+        `;
+
+        $('btn-logout').onclick = () => signOut(auth);
+    } catch (err) {
+        console.error("Erreur profil:", err);
+    }
+}
+
+// ==========================================
+// 📝 SYSTÈME DE POSTS
+// ==========================================
+async function createPost() {
+    const user = auth.currentUser;
+    const text = $('postInput').value.trim();
+    const file = $('fileInput').files[0];
+    const btn = $('btnPost');
+
+    if (!text && !file) return;
+
+    try {
+        btn.disabled = true;
+        btn.innerText = "...";
+
+        let mediaUrl = "";
+        let mediaType = "texte";
+
+        if (file) {
+            const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}_${file.name}`);
+            const snap = await uploadBytes(storageRef, file);
+            mediaUrl = await getDownloadURL(snap.ref);
+            mediaType = file.type.startsWith("image") ? "image" : "video";
+        }
+
+        const userSnap = await getDoc(doc(db, "etudiants", user.uid));
+        const userData = userSnap.data();
+
+        await addDoc(collection(db, "posts"), {
+            auteur: userData.nom_complet,
+            photo_auteur: userData.photo_url || DEFAULT_AVATAR,
+            contenu: text,
+            media: mediaUrl,
+            type: mediaType,
+            uid: user.uid,
+            createdAt: serverTimestamp()
+        });
+
+        $('postInput').value = "";
+        $('fileInput').value = "";
+        alert("Publié !");
+
+    } catch (err) {
+        console.error(err);
+        alert("Impossible de publier.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Publier";
+    }
+}
+
+function loadFeed() {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+
+    unsubscribeFeed = onSnapshot(q, (snap) => {
+        const container = $('newsfeed');
+        container.innerHTML = "";
+
+        if (snap.empty) {
+            container.innerHTML = "<p class='empty-msg'>Aucun post pour le moment. Soyez le premier !</p>";
+            return;
+        }
+
+        snap.forEach(docSnap => {
+            const p = docSnap.data();
+            const date = p.createdAt?.toDate() ? p.createdAt.toDate().toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : "À l'instant";
+            
+            const mediaHtml = p.media 
+                ? (p.type === "image" 
+                    ? `<div class="post-media"><img src="${p.media}" loading="lazy"></div>` 
+                    : `<div class="post-media"><video src="${p.media}" controls></video></div>`)
+                : "";
+
+            const postEl = document.createElement("div");
+            postEl.className = "post-card card";
+            postEl.innerHTML = `
+                <div class="post-header">
+                    <img src="${p.photo_auteur}" class="avatar-sm" onerror="this.src='${DEFAULT_AVATAR}'"/>
+                    <div class="post-meta">
+                        <strong>${sanitize(p.auteur)}</strong>
+                        <small>${date}</small>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <p>${sanitize(p.contenu)}</p>
+                </div>
+                ${mediaHtml}
+            `;
+            container.appendChild(postEl);
+        });
+    });
+}
+
+// ==========================================
+// 🎯 INITIALISATION DES ÉVÉNEMENTS
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    // Forms
+    $('login-form')?.addEventListener("submit", handleLogin);
+    $('register-form')?.addEventListener("submit", handleRegister);
+
+    // Publication
+    $('btnPost')?.addEventListener("click", createPost);
+
+    // Navigation entre Vues
+    $('go-register')?.addEventListener("click", () => {
+        toggleSection('login-section', false);
+        toggleSection('auth-section', true);
+    });
+
+    $('go-login')?.addEventListener("click", () => {
+        toggleSection('login-section', true);
+        toggleSection('auth-section', false);
+    });
+});
