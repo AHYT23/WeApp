@@ -1,1 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>weApp - Campus Connect</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <h1 class="logo-weapp">weApp</h1>
+        <div class="search-container">
+            <input type="text" id="searchInp" placeholder="Rechercher un étudiant...">
+            <button onclick="chercherEtudiant()">🔍</button>
+        </div>
+    </nav>
 
+    <div id="app">
+        <!-- FORMULAIRE D'INSCRIPTION COMPLET -->
+        <section id="auth-section" class="card">
+            <h2>Créer mon compte étudiant</h2>
+            
+            <div class="input-group">
+                <h3>Informations Publiques</h3>
+                <input type="text" id="nom" placeholder="Nom et Prénom">
+                <input type="text" id="classe" placeholder="Ta classe (ex: L3 SEG, Master 1...)">
+                <input type="text" id="filiere" placeholder="Ta filière (ex: Économie, Droit...)">
+                <textarea id="bio" placeholder="Parle-nous de toi (Bio)..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <h3>Informations Privées</h3>
+                <input type="email" id="email" placeholder="Adresse e-mail">
+                <input type="password" id="password" placeholder="Mot de passe">
+                <label for="dateNaissance">Date de naissance :</label>
+                <input type="date" id="dateNaissance">
+            </div>
+
+            <button class="btn-main" onclick="inscriptionEtudiant()">S'inscrire sur weApp</button>
+        </section>
+
+        <!-- ZONE DES RÉSULTATS / PROFILS -->
+        <section id="results"></section>
+
+        <!-- ZONE DE MESSAGERIE (S'affichera lors d'une discussion) -->
+        <section id="chat-box" style="display:none;" class="card">
+            <div id="chat-header">
+                <span id="chat-with-name">Discussion</span>
+                <button onclick="fermerChat()">X</button>
+            </div>
+            <div id="messages-container"></div>
+            <div class="chat-controls">
+                <button title="Note Vocale">🎤</button>
+                <button title="Image/Vidéo HD">🖼️</button>
+                <input type="text" id="msgInput" placeholder="Écris un message...">
+                <button onclick="envoyerMessage()">Envoyer</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Chargement de Firebase et de ta logique -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
