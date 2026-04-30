@@ -3,76 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>weApp - Campus Connect</title>
+    <title>weApp - Le Réseau Social de l'IIPEA</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts pour un look pro -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <nav>
-        <h1 class="logo-weapp">weApp</h1>
-        <div class="search-container">
-            <input type="text" id="searchInp" placeholder="Rechercher un étudiant...">
-            <button onclick="chercherEtudiant()">🔍</button>
+
+    <!-- Barre de Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1 class="logo-weapp">weApp</h1>
+            <div class="search-bar" id="nav-search" style="display:none;">
+                <input type="text" id="searchInp" placeholder="Rechercher un étudiant...">
+                <button onclick="chercherEtudiant()">🔍</button>
+            </div>
         </div>
     </nav>
 
-    <div id="app">
-        
-        <!-- 1. FORMULAIRE D'INSCRIPTION -->
+    <main class="container">
+
+        <!-- 1. ÉCRAN D'INSCRIPTION -->
         <section id="auth-section" class="card">
-            <h2>Créer mon compte étudiant</h2>
-            
-            <div class="input-group">
-                <h3>Informations Publiques</h3>
-                <input type="text" id="nom" placeholder="Nom et Prénom">
-                <input type="text" id="classe" placeholder="Ta classe (ex: L3 SEG...)">
-                <input type="text" id="filiere" placeholder="Ta filière (ex: Économie...)">
-                <textarea id="bio" placeholder="Parle-nous de toi (Bio)..."></textarea>
+            <div class="card-header">
+                <h2>Bienvenue sur weApp 🚀</h2>
+                <p>Le réseau social exclusif des étudiants de l'IIPEA.</p>
             </div>
-
-            <div class="input-group">
-                <h3>Informations Privées</h3>
-                <input type="email" id="email" placeholder="Adresse e-mail">
-                <input type="password" id="password" placeholder="Mot de passe">
-                <label for="dateNaissance">Date de naissance :</label>
-                <input type="date" id="dateNaissance">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Nom Complet</label>
+                    <input type="text" id="nom" placeholder="Sonde Henoc Marc Williams">
+                </div>
+                <div class="input-group">
+                    <label>Classe & Filière</label>
+                    <input type="text" id="classe" placeholder="ex: L2 SEG">
+                    <input type="text" id="filiere" placeholder="ex: Économie">
+                </div>
+                <div class="input-group full-width">
+                    <label>Bio (Présente-toi au campus)</label>
+                    <textarea id="bio" placeholder="Passionné de Business Administration et DRH chez Junior Entreprise..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>E-mail</label>
+                    <input type="email" id="email" placeholder="nom@exemple.com">
+                </div>
+                <div class="input-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="password" placeholder="••••••••">
+                </div>
             </div>
-
-            <button class="btn-main" onclick="inscriptionEtudiant()">S'inscrire sur weApp</button>
-            <p onclick="basculerVue('connexion')" style="cursor:pointer; color:blue; text-align:center; margin-top:15px;">Déjà inscrit ? Se connecter</p>
+            <button class="btn-main" onclick="inscriptionEtudiant()">Rejoindre le réseau</button>
+            <p class="switch-auth">Déjà un compte ? <span onclick="basculerVue('connexion')">Se connecter</span></p>
         </section>
 
-        <!-- 2. FORMULAIRE DE CONNEXION (Masqué par défaut) -->
+        <!-- 2. ÉCRAN DE CONNEXION -->
         <section id="login-section" class="card" style="display:none;">
-            <h2>Connexion à weApp</h2>
-            <div class="input-group">
-                <input type="email" id="loginEmail" placeholder="Ton adresse e-mail">
-                <input type="password" id="loginPass" placeholder="Ton mot de passe">
+            <div class="card-header">
+                <h2>Connexion</h2>
+                <p>Rentre tes identifiants pour accéder au fil d'actualité.</p>
             </div>
-            <button class="btn-main" onclick="connexionEtudiant()">Se connecter</button>
-            <p onclick="basculerVue('inscription')" style="cursor:pointer; color:blue; text-align:center; margin-top:15px;">Pas encore de compte ? S'inscrire</p>
+            <div class="input-group">
+                <label>E-mail</label>
+                <input type="email" id="loginEmail" placeholder="ton-email@outlook.fr">
+            </div>
+            <div class="input-group">
+                <label>Mot de passe</label>
+                <input type="password" id="loginPass" placeholder="••••••••">
+            </div>
+            <button class="btn-main" onclick="connexionEtudiant()">Se connecter instantanément</button>
+            <p class="switch-auth">Pas encore inscrit ? <span onclick="basculerVue('inscription')">Créer un compte</span></p>
         </section>
 
-        <!-- 3. ZONE DES RÉSULTATS / PROFILS -->
-        <section id="results"></section>
+        <!-- 3. ZONE PERSONNELLE (PROFIL & ÉDITION) -->
+        <div id="user-profile-area" style="display:none;">
+            <div id="results"></div> <!-- Ici s'affiche le bandeau de profil généré par script.js -->
+            
+            <!-- Bouton pour modifier son profil -->
+            <button class="btn-secondary" onclick="document.getElementById('edit-profile-section').style.display='block'">⚙️ Modifier mon profil</button>
 
-        <!-- 4. ZONE DE MESSAGERIE -->
-        <section id="chat-box" style="display:none;" class="card">
-            <div id="chat-header">
+            <section id="edit-profile-section" class="card" style="display:none; margin-top:15px;">
+                <h3>Mettre à jour tes infos</h3>
+                <div class="input-group">
+                    <label>Changer ma photo</label>
+                    <input type="file" id="profilePicInput" accept="image/*">
+                </div>
+                <div class="input-group">
+                    <textarea id="editBio" placeholder="Mets à jour ta bio..."></textarea>
+                </div>
+                <button class="btn-main" onclick="enregistrerModifsProfil()">Sauvegarder les changements</button>
+                <button class="btn-ghost" onclick="document.getElementById('edit-profile-section').style.display='none'">Annuler</button>
+            </section>
+        </div>
+
+        <!-- 4. FIL D'ACTUALITÉ (STORIES) -->
+        <div id="main-feed" style="display:none;">
+            <section id="feed-section" class="card">
+                <h3>Publier une Story 📢</h3>
+                <textarea id="storyInput" placeholder="Quoi de neuf aujourd'hui ?"></textarea>
+                <div class="feed-actions">
+                    <button class="btn-main" onclick="publierStory()">Publier</button>
+                </div>
+            </section>
+            
+            <div id="stories-container"></div>
+        </div>
+
+        <!-- 5. MESSAGERIE (CHAT BOX) -->
+        <div id="chat-box" class="chat-popup" style="display:none;">
+            <div class="chat-header">
                 <span id="chat-with-name">Discussion</span>
-                <button onclick="fermerChat()">X</button>
+                <button onclick="fermerChat()">✖</button>
             </div>
             <div id="messages-container"></div>
-            <div class="chat-controls">
-                <button title="Note Vocale">🎤</button>
-                <button title="Image/Vidéo HD">🖼️</button>
-                <input type="text" id="msgInput" placeholder="Écris un message...">
-                <button onclick="envoyerMessage()">Envoyer</button>
+            <div class="chat-footer">
+                <button onclick="document.getElementById('fileInput').click()">🖼️</button>
+                <input type="file" id="fileInput" style="display:none" onchange="envoyerFichierHD(this.files[0])">
+                <input type="text" id="msgInput" placeholder="Message...">
+                <button onclick="envoyerMessage()">➡️</button>
             </div>
-        </section>
+        </div>
 
-    </div>
+    </main>
 
-    <!-- Chargement de Firebase et de ta logique -->
+    <!-- Import du Script Principal -->
     <script type="module" src="script.js"></script>
 </body>
 </html>
