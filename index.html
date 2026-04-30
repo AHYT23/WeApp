@@ -3,129 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>weApp - Le Réseau Social de l'IIPEA</title>
+    <title>weApp - Campus IIPEA</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts pour un look pro -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Barre de Navigation -->
-    <nav class="navbar">
-        <div class="nav-content">
-            <h1 class="logo-weapp">weApp</h1>
-            <div class="search-bar" id="nav-search" style="display:none;">
-                <input type="text" id="searchInp" placeholder="Rechercher un étudiant...">
-                <button onclick="chercherEtudiant()">🔍</button>
-            </div>
+    <!-- 1. HAUT DE PAGE (TOP BAR) -->
+    <nav class="top-bar">
+        <div class="logo-weapp">weApp</div>
+        <div class="search-box">
+            <input type="text" id="searchInp" placeholder="Rechercher un étudiant...">
+        </div>
+        <div class="nav-icons-top">
+            <button class="btn-icon" title="Messages Privés">💬</button>
+        </div>
+    </nav>
+
+    <!-- 2. BARRE DE NAVIGATION (ICONES) -->
+    <nav class="main-nav" id="nav-principale" style="display:none;">
+        <div class="nav-item active" onclick="changerOnglet('accueil')">
+            <span class="icon">🏠</span>
+            <span class="label">Accueil</span>
+        </div>
+        <div class="nav-item" onclick="changerOnglet('amis')">
+            <span class="icon">👥</span>
+            <span class="label">Amis</span>
+        </div>
+        <div class="nav-item" onclick="changerOnglet('notifs')">
+            <span class="icon">🔔</span>
+            <span class="label">Notifications</span>
         </div>
     </nav>
 
     <main class="container">
 
-        <!-- 1. ÉCRAN D'INSCRIPTION -->
-        <section id="auth-section" class="card">
-            <div class="card-header">
-                <h2>Bienvenue sur weApp 🚀</h2>
-                <p>Le réseau social exclusif des étudiants de l'IIPEA.</p>
-            </div>
-            <div class="form-grid">
-                <div class="input-group">
-                    <label>Nom Complet</label>
-                    <input type="text" id="nom" placeholder="Sonde Henoc Marc Williams">
-                </div>
-                <div class="input-group">
-                    <label>Classe & Filière</label>
-                    <input type="text" id="classe" placeholder="ex: L2 SEG">
-                    <input type="text" id="filiere" placeholder="ex: Économie">
-                </div>
-                <div class="input-group full-width">
-                    <label>Bio (Présente-toi au campus)</label>
-                    <textarea id="bio" placeholder="Passionné de Business Administration et DRH chez Junior Entreprise..."></textarea>
-                </div>
-                <div class="input-group">
-                    <label>E-mail</label>
-                    <input type="email" id="email" placeholder="nom@exemple.com">
-                </div>
-                <div class="input-group">
-                    <label>Mot de passe</label>
-                    <input type="password" id="password" placeholder="••••••••">
-                </div>
-            </div>
-            <button class="btn-main" onclick="inscriptionEtudiant()">Rejoindre le réseau</button>
-            <p class="switch-auth">Déjà un compte ? <span onclick="basculerVue('connexion')">Se connecter</span></p>
-        </section>
-
-        <!-- 2. ÉCRAN DE CONNEXION -->
-        <section id="login-section" class="card" style="display:none;">
+        <!-- ÉCRAN DE CONNEXION (S'affiche en premier) -->
+        <section id="login-section" class="card">
             <div class="card-header">
                 <h2>Connexion</h2>
-                <p>Rentre tes identifiants pour accéder au fil d'actualité.</p>
+                <p>Accédez au réseau de l'IIPEA</p>
             </div>
             <div class="input-group">
-                <label>E-mail</label>
-                <input type="email" id="loginEmail" placeholder="ton-email@outlook.fr">
+                <input type="email" id="loginEmail" placeholder="Email (ex: henoc201@outlook.fr)">
             </div>
             <div class="input-group">
-                <label>Mot de passe</label>
-                <input type="password" id="loginPass" placeholder="••••••••">
+                <input type="password" id="loginPass" placeholder="Mot de passe">
             </div>
-            <button class="btn-main" onclick="connexionEtudiant()">Se connecter instantanément</button>
-            <p class="switch-auth">Pas encore inscrit ? <span onclick="basculerVue('inscription')">Créer un compte</span></p>
+            <button class="btn-main" onclick="connexionEtudiant()">Se connecter</button>
+            <p class="switch-auth">Pas de compte ? <span onclick="basculerVue('inscription')">S'inscrire</span></p>
         </section>
 
-        <!-- 3. ZONE PERSONNELLE (PROFIL & ÉDITION) -->
-        <div id="user-profile-area" style="display:none;">
-            <div id="results"></div> <!-- Ici s'affiche le bandeau de profil généré par script.js -->
+        <!-- ÉCRAN D'INSCRIPTION (Caché par défaut) -->
+        <section id="auth-section" class="card" style="display:none;">
+            <h2>Rejoindre weApp</h2>
+            <input type="text" id="nom" placeholder="Nom Complet">
+            <input type="text" id="classe" placeholder="Classe (ex: L2 SEG)">
+            <input type="text" id="filiere" placeholder="Filière (ex: Économie)">
+            <textarea id="bio" placeholder="Ta bio..."></textarea>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Mot de passe">
+            <button class="btn-main" onclick="inscriptionEtudiant()">Créer mon compte</button>
+            <p class="switch-auth">Déjà inscrit ? <span onclick="basculerVue('connexion')">Se connecter</span></p>
+        </section>
+
+        <!-- ZONE DE PUBLICATION (Visible une fois connecté) -->
+        <div id="main-content" style="display:none;">
             
-            <!-- Bouton pour modifier son profil -->
-            <button class="btn-secondary" onclick="document.getElementById('edit-profile-section').style.display='block'">⚙️ Modifier mon profil</button>
+            <!-- PROFIL RAPIDE (Fix pour la photo qui ne passe pas) -->
+            <div id="user-header-profile"></div>
 
-            <section id="edit-profile-section" class="card" style="display:none; margin-top:15px;">
-                <h3>Mettre à jour tes infos</h3>
-                <div class="input-group">
-                    <label>Changer ma photo</label>
-                    <input type="file" id="profilePicInput" accept="image/*">
+            <section id="publication-area" class="card">
+                <div class="post-input-container">
+                    <textarea id="postInput" placeholder="Quoi de neuf sur le campus ?"></textarea>
                 </div>
-                <div class="input-group">
-                    <textarea id="editBio" placeholder="Mets à jour ta bio..."></textarea>
-                </div>
-                <button class="btn-main" onclick="enregistrerModifsProfil()">Sauvegarder les changements</button>
-                <button class="btn-ghost" onclick="document.getElementById('edit-profile-section').style.display='none'">Annuler</button>
-            </section>
-        </div>
-
-        <!-- 4. FIL D'ACTUALITÉ (STORIES) -->
-        <div id="main-feed" style="display:none;">
-            <section id="feed-section" class="card">
-                <h3>Publier une Story 📢</h3>
-                <textarea id="storyInput" placeholder="Quoi de neuf aujourd'hui ?"></textarea>
-                <div class="feed-actions">
-                    <button class="btn-main" onclick="publierStory()">Publier</button>
+                <div class="post-actions">
+                    <!-- Remplacement de la partie story par l'icône image -->
+                    <label for="fileInput" class="icon-upload">
+                        <span class="icon-pic">🖼️</span> Ajouter une Photo/Vidéo
+                    </label>
+                    <input type="file" id="fileInput" style="display:none" accept="image/*,video/*">
+                    <button class="btn-post" onclick="publierPost()">Publier</button>
                 </div>
             </section>
-            
-            <div id="stories-container"></div>
-        </div>
 
-        <!-- 5. MESSAGERIE (CHAT BOX) -->
-        <div id="chat-box" class="chat-popup" style="display:none;">
-            <div class="chat-header">
-                <span id="chat-with-name">Discussion</span>
-                <button onclick="fermerChat()">✖</button>
-            </div>
-            <div id="messages-container"></div>
-            <div class="chat-footer">
-                <button onclick="document.getElementById('fileInput').click()">🖼️</button>
-                <input type="file" id="fileInput" style="display:none" onchange="envoyerFichierHD(this.files[0])">
-                <input type="text" id="msgInput" placeholder="Message...">
-                <button onclick="envoyerMessage()">➡️</button>
-            </div>
+            <!-- FIL D'ACTUALITÉ -->
+            <div id="newsfeed"></div>
         </div>
 
     </main>
 
-    <!-- Import du Script Principal -->
     <script type="module" src="script.js"></script>
 </body>
 </html>
