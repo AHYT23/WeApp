@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, addDoc, query, where, getDocs, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 // --- CONFIGURATION FIREBASE ---
@@ -10,8 +10,7 @@ const firebaseConfig = {
   projectId: "weapp-af9e9",
   storageBucket: "weapp-af9e9.firebasestorage.app",
   messagingSenderId: "985218671037",
-  appId: "1:985218671037:web:12d49094139dca0dc272d4",
-  measurementId: "G-4N05PMLSVT"
+  appId: "1:985218671037:web:12d49094139dca0dc272d4"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -19,20 +18,37 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// --- 1. GESTION DES VUES ---
-window.basculerVue = function(vue) {
-    const authSection = document.getElementById('auth-section');
-    const loginSection = document.getElementById('login-section');
-    if (vue === 'connexion') {
-        authSection.style.display = 'none';
-        loginSection.style.display = 'block';
+// --- 1. GESTION DE L'ÉTAT DE CONNEXION ---
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // Utilisateur connecté : On affiche l'interface intérieure
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('user-profile-area').style.display = 'block';
+        document.getElementById('main-feed').style.display = 'block';
+        document.getElementById('nav-search').style.display = 'block';
+        
+        chargerProfilUtilisateur(user.uid);
+        chargerStories();
     } else {
-        authSection.style.display = 'block';
-        loginSection.style.display = 'none';
+        // Déconnecté : On affiche la connexion par défaut
+        document.getElementById('login-section').style.display = 'block';
+        document.getElementById('user-profile-area').style.display = 'none';
+        document.getElementById('main-feed').style.display = 'none';
+    }
+});
+
+// --- 2. INSCRIPTION & CONNEXION ---
+window.basculerVue = function(vue) {
+    if (vue === 'connexion') {
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('login-section').style.display = 'block';
+    } else {
+        document.getElementById('auth-section').style.display = 'block';
+        document.getElementById('login-section').style.display = 'none';
     }
 };
 
-// --- 2. INSCRIPTION ---
 window.inscriptionEtudiant = async function() {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
@@ -44,7 +60,8 @@ window.inscriptionEtudiant = async function() {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const user = userCredential.user;
-        await sendEmailVerification(user);
+        
+        // Création du profil dans Firestore
         await setDoc(doc(db, "etudiants", user.uid), {
             uid: user.uid,
             nom_complet: nom,
@@ -52,62 +69,117 @@ window.inscriptionEtudiant = async function() {
             filiere: filiere,
             bio: bio,
             email: email,
-            abonnes: 0,
-            photo_url: "https://via.placeholder.com/150"
+            photo_url: "https://via.placeholder.com/150",
+            dateCreation: new Date()
         });
-        alert("Compte créé ! On a ignoré la validation pour ce test.");
+
+        alert("Bienvenue sur weApp !");
     } catch (error) {
-        alert("Erreur : " + error.message);
+        alert("Erreur d'inscription : " + error.message);
     }
 };
 
-// --- 3. CONNEXION INSTANTANÉE (RÉGLE LE PROBLÈME DE LENTEUR) ---
 window.connexionEtudiant = async function() {
     const email = document.getElementById('loginEmail').value;
     const pass = document.getElementById('loginPass').value;
 
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-        const user = userCredential.user;
-
-        // On ignore la vérification emailVerified pour que tu puisses entrer direct !
-        if (user) { 
-            alert("Connexion réussie ! Bienvenue sur ton espace weApp.");
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('auth-section').style.display = 'none';
-            // Ici tu peux lancer une fonction pour charger ton profil
-        }
+        await signInWithEmailAndPassword(auth, email, pass);
+        // Le onAuthStateChanged s'occupe du reste
     } catch (error) {
-        alert("Erreur de connexion : " + error.message);
+        alert("Erreur : " + error.message);
     }
 };
 
-// --- 4. ENVOI DE MÉDIAS HD ET ÉMOTIONS ---
-window.envoyerMessageAvecEmotion = async function(texte, emotion = "") {
-    const user = auth.currentUser;
-    if (!user) return;
+// --- 3. PROFIL ET PERSONNALISATION ---
+async function chargerProfilUtilisateur(uid) {
+    const docRef = doc(db, "etudiants", uid);
+    const docSnap = await getDoc(docRef);
 
-    await addDoc(collection(db, "messages"), {
-        expediteur: user.uid,
-        texte: texte,
-        emotion: emotion,
-        timestamp: new Date()
-    });
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        const resultsDiv = document.getElementById('results');
+        
+        resultsDiv.innerHTML = `
+            <div class="card profile-main-card">
+                <div class="profile-banner" style="height:80px; background:linear-gradient(to right, #FF0000, #b30000); border-radius:12px 12px 0 0;"></div>
+                <img src="${data.photo_url}" style="width:100px; height:100px; border-radius:50%; border:4px solid white; margin-top:-50px; background:white; object-fit:cover;">
+                <div style="padding:15px;">
+                    <h2 style="margin:5px 0;">${data.nom_complet}</h2>
+                    <p style="color:#666; font-weight:600;">${data.classe} - ${data.filiere}</p>
+                    <p style="font-style:italic; margin:10px 0;">"${data.bio || ''}"</p>
+                </div>
+            </div>
+        `;
+        // Pré-remplir le formulaire de modification
+        document.getElementById('editBio').value = data.bio || "";
+    }
+}
+
+window.enregistrerModifsProfil = async function() {
+    const user = auth.currentUser;
+    const nouvelleBio = document.getElementById('editBio').value;
+    const file = document.getElementById('profilePicInput').files[0];
+    let photoUrl = null;
+
+    try {
+        if (file) {
+            const storageRef = ref(storage, `profils/${user.uid}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            photoUrl = await getDownloadURL(snapshot.ref);
+        }
+
+        const updates = { bio: nouvelleBio };
+        if (photoUrl) updates.photo_url = photoUrl;
+
+        await setDoc(doc(db, "etudiants", user.uid), updates, { merge: true });
+        alert("Profil mis à jour !");
+        document.getElementById('edit-profile-section').style.display = 'none';
+        chargerProfilUtilisateur(user.uid);
+    } catch (error) {
+        alert("Erreur de mise à jour : " + error.message);
+    }
 };
 
-window.envoyerFichierHD = async function(file) {
+// --- 4. SYSTÈME DE STORIES ---
+window.publierStory = async function() {
+    const texte = document.getElementById('storyInput').value;
     const user = auth.currentUser;
-    if (!user) return;
+    if (!texte) return;
 
-    const storageRef = ref(storage, `uploads/${user.uid}/${file.name}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(snapshot.ref);
+    const userDoc = await getDoc(doc(db, "etudiants", user.uid));
+    const userData = userDoc.data();
 
-    await addDoc(collection(db, "messages"), {
-        expediteur: user.uid,
-        mediaUrl: url,
-        type: file.type.startsWith('image') ? 'image' : 'video',
-        timestamp: new Date()
+    await addDoc(collection(db, "stories"), {
+        auteur: userData.nom_complet,
+        photo_auteur: userData.photo_url,
+        contenu: texte,
+        timestamp: new Date(),
+        uid: user.uid
     });
-    alert("Fichier HD envoyé !");
+
+    document.getElementById('storyInput').value = "";
 };
+
+function chargerStories() {
+    const q = query(collection(db, "stories"), orderBy("timestamp", "desc"));
+    onSnapshot(q, (snapshot) => {
+        const container = document.getElementById('stories-container');
+        container.innerHTML = "";
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            container.innerHTML += `
+                <div class="story-card card" style="margin-top:15px; padding:15px; border-radius:12px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                        <img src="${data.photo_auteur}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                        <div>
+                            <div style="font-weight:bold; color:#FF0000;">${data.auteur}</div>
+                            <small style="color:#999;">${data.timestamp?.toDate().toLocaleString()}</small>
+                        </div>
+                    </div>
+                    <div style="line-height:1.5;">${data.contenu}</div>
+                </div>
+            `;
+        });
+    });
+}
