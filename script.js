@@ -1,9 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, collection, addDoc, query, where, getDocs, deleteDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-// Ta configuration Firebase (issue de tes captures d'écran)
+// --- CONFIGURATION FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyAt9aLIwKkxm1SeXlwXJ5tBXlvjMuIAR2M",
   authDomain: "weapp-af9e9.firebaseapp.com",
@@ -19,76 +19,73 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// --- 1. INSCRIPTION AVEC VALIDATION AUTOMATIQUE ---
+// --- 1. GESTION DES VUES (INSCRIPTION / CONNEXION) ---
+window.basculerVue = function(vue) {
+    const authSection = document.getElementById('auth-section');
+    const loginSection = document.getElementById('login-section');
+    
+    if (vue === 'connexion') {
+        authSection.style.display = 'none';
+        loginSection.style.display = 'block';
+    } else {
+        authSection.style.display = 'block';
+        loginSection.style.display = 'none';
+    }
+};
+
+// --- 2. INSCRIPTION ---
 window.inscriptionEtudiant = async function() {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
     const nom = document.getElementById('nom').value;
     const classe = document.getElementById('classe').value;
     const filiere = document.getElementById('filiere').value;
-    const naissance = document.getElementById('dateNaissance').value;
     const bio = document.getElementById('bio').value;
 
-    if (!email || !pass || !nom) return alert("Veuillez remplir les champs obligatoires.");
+    if (!email || !pass || !nom) return alert("Remplis les champs obligatoires !");
 
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const user = userCredential.user;
 
-        // Envoi du lien de validation automatique
         await sendEmailVerification(user);
 
-        // Création du profil (Données publiques + compteurs)
         await setDoc(doc(db, "etudiants", user.uid), {
             uid: user.uid,
             nom_complet: nom,
             classe: classe,
             filiere: filiere,
             bio: bio,
-            date_naissance: naissance, // Information gardée en base mais non affichée
             abonnes: 0,
             abonnements: 0,
             email: email,
             photo_url: "https://via.placeholder.com/150"
         });
 
-        alert("Inscription réussie ! Un lien de validation a été envoyé à : " + email);
+        alert("Compte créé ! Vérifie tes mails (Spams) pour valider.");
     } catch (error) {
         alert("Erreur : " + error.message);
     }
 };
 
-// --- 2. ENVOI DE MÉDIAS HD (Photos, Vidéos, Vocaux) ---
-window.envoyerMedia = async function(file, typeChat) {
-    const user = auth.currentUser;
-    if (!user) return alert("Connectez-vous pour envoyer un fichier.");
+// --- 3. CONNEXION ---
+window.connexionEtudiant = async function() {
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPass').value;
 
     try {
-        const storageRef = ref(storage, `chats/${user.uid}/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(snapshot.ref);
+        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+        const user = userCredential.user;
 
-        // Enregistre le lien du média dans la messagerie
-        await addDoc(collection(db, "messages"), {
-            expediteur: user.uid,
-            type: typeChat, // 'image', 'video', ou 'audio'
-            media_url: url,
-            timestamp: new Date()
-        });
-    } catch (e) {
-        console.error("Erreur d'envoi média :", e);
-    }
-};
-
-// --- 3. SUPPRESSION DE MESSAGE ---
-window.supprimerMessage = async function(messageId) {
-    if (confirm("Voulez-vous vraiment supprimer ce message ?")) {
-        try {
-            await deleteDoc(doc(db, "messages", messageId));
-            alert("Message supprimé.");
-        } catch (e) {
-            alert("Erreur lors de la suppression.");
+        if (user.emailVerified) {
+            alert("Bienvenue sur weApp !");
+            document.getElementById('login-section').style.display = 'none';
+            // Ici tu peux charger le profil de l'utilisateur
+        } else {
+            alert("Ton mail n'est pas encore validé. Regarde tes messages !");
         }
+    } catch (error) {
+        alert("Erreur : " + error.message);
     }
 };
 
@@ -96,7 +93,7 @@ window.supprimerMessage = async function(messageId) {
 window.chercherEtudiant = async function() {
     const term = document.getElementById('searchInp').value;
     const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = "Recherche...";
+    resultsDiv.innerHTML = "Recherche en cours...";
 
     const q = query(collection(db, "etudiants"), where("nom_complet", "==", term));
     const querySnapshot = await getDocs(q);
@@ -107,13 +104,30 @@ window.chercherEtudiant = async function() {
         resultsDiv.innerHTML += `
             <div class="user-card card">
                 <h3>${data.nom_complet}</h3>
-                <p><strong>Classe :</strong> ${data.classe} | <strong>Filière :</strong> ${data.filiere}</p>
-                <p><em>${data.bio}</em></p>
+                <p><strong>${data.classe}</strong> - ${data.filiere}</p>
+                <p>${data.bio}</p>
                 <div class="stats">
-                    <span>👥 ${data.abonnes} Abonnés</span> | <span>👤 ${data.abonnements} Abonnements</span>
+                    <span>${data.abonnes} Abonnés</span> | <span>${data.abonnements} Abonnements</span>
                 </div>
-                <button onclick="ouvrirChat('${data.uid}')">Envoyer un message</button>
+                <button class="btn-main" onclick="ouvrirChat('${data.uid}')">Discuter</button>
             </div>
         `;
+    });
+};
+
+// --- 5. ENVOI MÉDIAS HD ---
+window.envoyerMedia = async function(file) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const storageRef = ref(storage, `medias/${user.uid}/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+
+    await addDoc(collection(db, "messages"), {
+        expediteur: user.uid,
+        url: url,
+        type: file.type.startsWith('image') ? 'image' : 'video',
+        timestamp: new Date()
     });
 };
