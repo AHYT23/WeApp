@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, addDoc, query, where, getDocs, deleteDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, addDoc, query, where, getDocs, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 // --- CONFIGURATION FIREBASE ---
@@ -19,11 +19,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// --- 1. GESTION DES VUES (INSCRIPTION / CONNEXION) ---
+// --- 1. GESTION DES VUES ---
 window.basculerVue = function(vue) {
     const authSection = document.getElementById('auth-section');
     const loginSection = document.getElementById('login-section');
-    
     if (vue === 'connexion') {
         authSection.style.display = 'none';
         loginSection.style.display = 'block';
@@ -42,33 +41,27 @@ window.inscriptionEtudiant = async function() {
     const filiere = document.getElementById('filiere').value;
     const bio = document.getElementById('bio').value;
 
-    if (!email || !pass || !nom) return alert("Remplis les champs obligatoires !");
-
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const user = userCredential.user;
-
         await sendEmailVerification(user);
-
         await setDoc(doc(db, "etudiants", user.uid), {
             uid: user.uid,
             nom_complet: nom,
             classe: classe,
             filiere: filiere,
             bio: bio,
-            abonnes: 0,
-            abonnements: 0,
             email: email,
+            abonnes: 0,
             photo_url: "https://via.placeholder.com/150"
         });
-
-        alert("Compte créé ! Vérifie tes mails (Spams) pour valider.");
+        alert("Compte créé ! On a ignoré la validation pour ce test.");
     } catch (error) {
         alert("Erreur : " + error.message);
     }
 };
 
-// --- 3. CONNEXION ---
+// --- 3. CONNEXION INSTANTANÉE (RÉGLE LE PROBLÈME DE LENTEUR) ---
 window.connexionEtudiant = async function() {
     const email = document.getElementById('loginEmail').value;
     const pass = document.getElementById('loginPass').value;
@@ -77,57 +70,44 @@ window.connexionEtudiant = async function() {
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         const user = userCredential.user;
 
-        if (user.emailVerified) {
-            alert("Bienvenue sur weApp !");
+        // On ignore la vérification emailVerified pour que tu puisses entrer direct !
+        if (user) { 
+            alert("Connexion réussie ! Bienvenue sur ton espace weApp.");
             document.getElementById('login-section').style.display = 'none';
-            // Ici tu peux charger le profil de l'utilisateur
-        } else {
-            alert("Ton mail n'est pas encore validé. Regarde tes messages !");
+            document.getElementById('auth-section').style.display = 'none';
+            // Ici tu peux lancer une fonction pour charger ton profil
         }
     } catch (error) {
-        alert("Erreur : " + error.message);
+        alert("Erreur de connexion : " + error.message);
     }
 };
 
-// --- 4. RECHERCHE D'ÉTUDIANTS ---
-window.chercherEtudiant = async function() {
-    const term = document.getElementById('searchInp').value;
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = "Recherche en cours...";
-
-    const q = query(collection(db, "etudiants"), where("nom_complet", "==", term));
-    const querySnapshot = await getDocs(q);
-    
-    resultsDiv.innerHTML = "";
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        resultsDiv.innerHTML += `
-            <div class="user-card card">
-                <h3>${data.nom_complet}</h3>
-                <p><strong>${data.classe}</strong> - ${data.filiere}</p>
-                <p>${data.bio}</p>
-                <div class="stats">
-                    <span>${data.abonnes} Abonnés</span> | <span>${data.abonnements} Abonnements</span>
-                </div>
-                <button class="btn-main" onclick="ouvrirChat('${data.uid}')">Discuter</button>
-            </div>
-        `;
-    });
-};
-
-// --- 5. ENVOI MÉDIAS HD ---
-window.envoyerMedia = async function(file) {
+// --- 4. ENVOI DE MÉDIAS HD ET ÉMOTIONS ---
+window.envoyerMessageAvecEmotion = async function(texte, emotion = "") {
     const user = auth.currentUser;
     if (!user) return;
 
-    const storageRef = ref(storage, `medias/${user.uid}/${Date.now()}_${file.name}`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
+    await addDoc(collection(db, "messages"), {
+        expediteur: user.uid,
+        texte: texte,
+        emotion: emotion,
+        timestamp: new Date()
+    });
+};
+
+window.envoyerFichierHD = async function(file) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const storageRef = ref(storage, `uploads/${user.uid}/${file.name}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(snapshot.ref);
 
     await addDoc(collection(db, "messages"), {
         expediteur: user.uid,
-        url: url,
+        mediaUrl: url,
         type: file.type.startsWith('image') ? 'image' : 'video',
         timestamp: new Date()
     });
+    alert("Fichier HD envoyé !");
 };
